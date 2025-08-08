@@ -57,6 +57,7 @@ const selectClient = (client) => {
   }));
 };
 
+
   const handleServiceChange = (index, field, value) => {
     const newServices = [...invoice.services];
     newServices[index][field] = value;
