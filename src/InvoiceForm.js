@@ -6,7 +6,6 @@ function InvoiceForm() {
   const [clients, setClients] = useState([]);
   const [services, setServices] = useState([]);
   const [filteredClients, setFilteredClients] = useState([]);
-  
 
   const [invoice, setInvoice] = useState({
     clientName: "",
@@ -47,16 +46,15 @@ function InvoiceForm() {
     setInvoice((prev) => ({ ...prev, clientName: name }));
   };
 
-const selectClient = (client) => {
-  setFilteredClients([]);
-  setInvoice((prev) => ({
-    ...prev,
-    clientName: client.name,
-    clientAddress: client.address,
-    clientContact: client.contact,
-  }));
-};
-
+  const selectClient = (client) => {
+    setFilteredClients([]);
+    setInvoice((prev) => ({
+      ...prev,
+      clientName: client.name,
+      clientAddress: client.address,
+      clientContact: client.contact,
+    }));
+  };
 
   const handleServiceChange = (index, field, value) => {
     const newServices = [...invoice.services];
@@ -117,7 +115,6 @@ const selectClient = (client) => {
       clientId = newClient.id;
     }
 
-    // Save new services if they don't exist
     for (const s of invoice.services) {
       const existing = services.find(
         (sv) => sv.name.toLowerCase() === s.name.toLowerCase()
@@ -136,14 +133,13 @@ const selectClient = (client) => {
       }
     }
 
-    // ✅ Save invoice using selectedClient fallback
     const { error } = await supabase.from("invoices").insert([
       {
         invoice_number: invoiceNumber,
-        client_id: selectedClient?.id || clientId,
-        client_name: selectedClient?.name || invoice.clientName,
-        client_address: selectedClient?.address || invoice.clientAddress,
-        client_contact: selectedClient?.contact || invoice.clientContact,
+        client_id: clientId,
+        client_name: invoice.clientName,
+        client_address: invoice.clientAddress,
+        client_contact: invoice.clientContact,
         services: invoice.services,
         total: invoice.total,
         created_at: new Date(),
