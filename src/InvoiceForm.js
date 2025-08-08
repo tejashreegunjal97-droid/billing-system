@@ -47,16 +47,15 @@ function InvoiceForm() {
     setInvoice((prev) => ({ ...prev, clientName: name }));
   };
 
-  const selectClient = (client) => {
-    
-    setFilteredClients([]);
-    setInvoice((prev) => ({
-      ...prev,
-      clientName: client.name,
-      clientAddress: client.address,
-      clientContact: client.contact,
-    }));
-  };
+const selectClient = (client) => {
+  setFilteredClients([]);
+  setInvoice((prev) => ({
+    ...prev,
+    clientName: client.name,
+    clientAddress: client.address,
+    clientContact: client.contact,
+  }));
+};
 
   const handleServiceChange = (index, field, value) => {
     const newServices = [...invoice.services];
