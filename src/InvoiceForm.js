@@ -6,7 +6,7 @@ function InvoiceForm() {
   const [clients, setClients] = useState([]);
   const [services, setServices] = useState([]);
   const [filteredClients, setFilteredClients] = useState([]);
-  const [selectedClient, setSelectedClient] = useState(null);
+  
 
   const [invoice, setInvoice] = useState({
     clientName: "",
@@ -48,7 +48,7 @@ function InvoiceForm() {
   };
 
   const selectClient = (client) => {
-    setSelectedClient(client);
+    
     setFilteredClients([]);
     setInvoice((prev) => ({
       ...prev,
@@ -90,71 +90,74 @@ function InvoiceForm() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const existingClient = clients.find((c) => c.name.toLowerCase() === invoice.clientName.toLowerCase());
-  let clientId = existingClient?.id;
+    const existingClient = clients.find(
+      (c) => c.name.toLowerCase() === invoice.clientName.toLowerCase()
+    );
+    let clientId = existingClient?.id;
 
-  if (!existingClient) {
-    const { data: newClient, error: clientError } = await supabase
-      .from("clients")
-      .insert([
-        {
-          name: invoice.clientName,
-          address: invoice.clientAddress,
-          contact: invoice.clientContact,
-        },
-      ])
-      .select()
-      .single();
+    if (!existingClient) {
+      const { data: newClient, error: clientError } = await supabase
+        .from("clients")
+        .insert([
+          {
+            name: invoice.clientName,
+            address: invoice.clientAddress,
+            contact: invoice.clientContact,
+          },
+        ])
+        .select()
+        .single();
 
-    if (clientError) {
-      alert("Error saving client: " + clientError.message);
-      return;
-    }
-    clientId = newClient.id;
-  }
-
-  // Save new services if they don't exist
-  for (const s of invoice.services) {
-    const existing = services.find((sv) => sv.name.toLowerCase() === s.name.toLowerCase());
-    if (!existing) {
-      const { error: serviceError } = await supabase.from("services").insert([
-        {
-          name: s.name.trim(),
-          default_rate: parseFloat(s.rate),
-        },
-      ]);
-      if (serviceError) {
-        alert("Error saving service: " + serviceError.message);
+      if (clientError) {
+        alert("Error saving client: " + clientError.message);
         return;
       }
+      clientId = newClient.id;
     }
-  }
 
-  // Save invoice
-  const { error } = await supabase.from("invoices").insert([
-    {
-      invoice_number: invoiceNumber,
-      client_id: clientId,
-      client_name: invoice.clientName,
-      client_address: invoice.clientAddress,
-      client_contact: invoice.clientContact,
-      services: invoice.services,
-      total: invoice.total,
-      created_at: new Date(),
-      status: "Unpaid", // ✅ Add status
-    },
-  ]);
+    // Save new services if they don't exist
+    for (const s of invoice.services) {
+      const existing = services.find(
+        (sv) => sv.name.toLowerCase() === s.name.toLowerCase()
+      );
+      if (!existing) {
+        const { error: serviceError } = await supabase.from("services").insert([
+          {
+            name: s.name.trim(),
+            default_rate: parseFloat(s.rate),
+          },
+        ]);
+        if (serviceError) {
+          alert("Error saving service: " + serviceError.message);
+          return;
+        }
+      }
+    }
 
-  if (error) {
-    alert("Error saving invoice: " + error.message);
-  } else {
-    alert("Invoice saved!");
-    window.location.reload();
-  }
-};
+    // ✅ Save invoice using selectedClient fallback
+    const { error } = await supabase.from("invoices").insert([
+      {
+        invoice_number: invoiceNumber,
+        client_id: selectedClient?.id || clientId,
+        client_name: selectedClient?.name || invoice.clientName,
+        client_address: selectedClient?.address || invoice.clientAddress,
+        client_contact: selectedClient?.contact || invoice.clientContact,
+        services: invoice.services,
+        total: invoice.total,
+        created_at: new Date(),
+        status: "Unpaid",
+      },
+    ]);
 
+    if (error) {
+      alert("Error saving invoice: " + error.message);
+    } else {
+      alert("Invoice saved!");
+      window.location.reload();
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} style={{ maxWidth: 600, margin: "auto" }}>
